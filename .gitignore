@@ -1,5 +1,3 @@
 /.idea/
 
-/alarm-server/target/
-/alarm-client/target/
-/events/target/
+/*/target/
