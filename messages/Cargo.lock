@@ -3,12 +3,5 @@
 version = 4
 
 [[package]]
-name = "alarm-client"
-version = "0.1.0"
-dependencies = [
- "messages",
-]
-
-[[package]]
 name = "messages"
 version = "0.1.0"
