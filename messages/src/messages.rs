@@ -8,6 +8,10 @@ pub trait Deserializeable {
         Self: Sized;
 }
 
+pub trait IsMessage {
+    fn to_message(&self) -> Message;
+}
+
 #[repr(u8)]
 pub enum OpCode {
     AddTimer,
@@ -56,6 +60,21 @@ impl Deserializeable for AddTimerMsg {
             duration: u64::from_le_bytes(buffer[1..9].try_into().unwrap()),
             is_repeat: buffer[9] != 0,
         })
+    }
+}
+
+impl Clone for AddTimerMsg {
+    fn clone(&self) -> Self {
+        AddTimerMsg {
+            duration: self.duration,
+            is_repeat: self.is_repeat,
+        }
+    }
+}
+
+impl IsMessage for AddTimerMsg {
+    fn to_message(&self) -> Message {
+        Message::AddTimer(self.clone())
     }
 }
 

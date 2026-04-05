@@ -1,26 +1,22 @@
 pub mod args;
-pub mod types;
+pub mod server_fifo;
 
-use messages::messages::{AddTimerMsg, Serializeable};
-use std::fs::OpenOptions;
-use std::io::Write;
+use crate::args::parse_args;
+use crate::server_fifo::ServerFifo;
 
 static FIFO_PATH: &str = "/tmp/alarm-server.fifo";
 
 fn main() {
-    let msg = AddTimerMsg {
-        duration: 1,
-        is_repeat: false,
+    let msg = match parse_args() {
+        Ok(msg) => msg,
+        Err(error) => {
+            eprintln!("{}", error);
+            return;
+        }
     };
 
-    let mut pipe = OpenOptions::new()
-        .read(false) // O_RDONLY
-        .write(true) // + O_WRONLY = O_RDWR (The EOF trick!)
-        .open(FIFO_PATH)
-        .expect("Failed to open FIFO");
 
-    let msg = msg.serialize();
-    pipe.write_all(&*msg)
-        .expect("TODO: panic message");
-    println!("Hello, world!");
+    let mut pipe = ServerFifo::new(&FIFO_PATH.to_string()).expect("Failed to create server fifo");
+
+    pipe.write(&msg).expect("Failed to write message");
 }

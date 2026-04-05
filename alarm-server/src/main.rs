@@ -4,6 +4,7 @@ use crate::alarm_server_manager::AlarmServerManager;
 
 mod alarm_server_manager;
 pub mod pipe_handler;
+pub mod timer;
 
 fn main() {
     let alarm_server_manager = AlarmServerManager::new();

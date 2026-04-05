@@ -1,13 +1,15 @@
+use crate::timer::Timer;
 use esm::epoll_event::EpollEvent;
+use events::event::EventHandle;
 use events::event_runner::EventManager;
+use events::timeout_event::{count_on_interval, count_once};
+use messages::messages::AddTimerMsg;
+use messages::messages::Message::AddTimer;
 use std::fs::File;
 use std::io::Read;
 use std::os::fd::{AsRawFd, FromRawFd, RawFd};
-use std::sync::{Arc};
+use std::sync::Arc;
 use std::time::Duration;
-use events::event::EventHandle;
-use events::timeout_event::count_once;
-use crate::timer::Timer;
 
 pub(crate) struct PipeHandler {
     file: File,
@@ -28,6 +30,24 @@ impl PipeHandler {
     pub fn get_fd(&self) -> RawFd {
         self.file.as_raw_fd()
     }
+
+    fn handle_add_timer(&self, msg: AddTimerMsg) -> Option<bool> {
+        if msg.is_repeat {
+            count_on_interval(
+                Arc::clone(&self.timeout_handler),
+                EventHandle::new(Timer::new("test")),
+                Duration::from_secs(msg.duration),
+                Duration::from_secs(msg.duration),
+            );
+        } else {
+            count_once(
+                Arc::clone(&self.timeout_handler),
+                EventHandle::new(Timer::new("test")),
+                Duration::from_secs(msg.duration),
+            );
+        }
+        Some(true)
+    }
 }
 
 impl EpollEvent for PipeHandler {
@@ -37,9 +57,8 @@ impl EpollEvent for PipeHandler {
         self.file.read(&mut buffer).expect("failed to read pipe");
 
         println!("buffer: {:?}", buffer);
-        // let msg = messages::messages::deserialize(&buffer).expect("failed to deserialize message");
-        count_once(Arc::clone(&self.timeout_handler), EventHandle::new(Timer::new("test")), Duration::from_secs(1));
-        println!("final");
-        Some(true)
+        match messages::messages::deserialize(&buffer)? {
+            AddTimer(msg) => self.handle_add_timer(msg),
+        }
     }
 }
