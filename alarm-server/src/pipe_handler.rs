@@ -3,7 +3,7 @@ use esm::epoll_event::EpollEvent;
 use events::event::EventHandle;
 use events::event_runner::EventManager;
 use events::timeout_event::{count_on_interval, count_once};
-use messages::messages::AddTimerMsg;
+use messages::add_timer::AddTimerMsg;
 use messages::messages::Message::AddTimer;
 use std::fs::File;
 use std::io::Read;
