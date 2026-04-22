@@ -2,19 +2,29 @@ use events::event::IEvent;
 use std::process::Command;
 
 pub struct Timer {
-    message: &'static str
+    message: String,
 }
 
 impl Timer {
-    pub fn new(txt: &'static str) -> Self {
+    pub fn new(txt: String) -> Self {
         Self { message: txt }
     }
 }
 
 impl IEvent for Timer {
     fn handle(&mut self) -> Option<bool> {
-        Command::new("xcowsay").arg(self.message).spawn().unwrap().wait().unwrap();
-
-        Some(true)
+        match Command::new("xcowsay").arg(self.message.as_str()).spawn() {
+            Ok(mut child) => match child.wait() {
+                Ok(status) => Some(status.success()),
+                Err(err) => {
+                    eprintln!("xcowsay failed: {}", err);
+                    None
+                },
+            },
+            Err(err) => {
+                eprintln!("Failed to run xcowsay: {}", err);
+                None
+            }
+        }
     }
 }

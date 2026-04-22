@@ -12,15 +12,16 @@ pub fn parse_args() -> Result<Message, &'static str> {
 
     match args[1].as_str() {
         "--add-timer" => {
-            if args.len() != 3 && args.len() != 4 {
+            if args.len() != 4 && args.len() != 5 {
                 return Err("--add-timer requires duration and optional is_repeat arguments only");
             }
 
             Ok(AddTimerMsg {
                 duration: args[2].parse().expect("Duration must be an integer"),
+                message: args[3].clone(),
                 is_repeat: match args.len() {
-                    3 => false,
-                    4 => args[3].parse().expect("Is repeat must be true/false"),
+                    4 => false,
+                    5 => args[4].parse().expect("Is repeat must be true/false"),
                     _ => panic!("Impossible code reached"),
                 },
             }

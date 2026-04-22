@@ -35,14 +35,14 @@ impl PipeHandler {
         if msg.is_repeat {
             count_on_interval(
                 Arc::clone(&self.timeout_handler),
-                EventHandle::new(Timer::new("test")),
+                EventHandle::new(Timer::new(msg.message.clone())),
                 Duration::from_secs(msg.duration),
                 Duration::from_secs(msg.duration),
             );
         } else {
             count_once(
                 Arc::clone(&self.timeout_handler),
-                EventHandle::new(Timer::new("test")),
+                EventHandle::new(Timer::new(msg.message.clone())),
                 Duration::from_secs(msg.duration),
             );
         }
@@ -53,7 +53,7 @@ impl PipeHandler {
 impl EpollEvent for PipeHandler {
     fn handle(&mut self) -> Option<bool> {
         println!("handle pipe");
-        let mut buffer = vec![0; 10];
+        let mut buffer = vec![0; 1024];
         self.file.read(&mut buffer).expect("failed to read pipe");
 
         println!("buffer: {:?}", buffer);

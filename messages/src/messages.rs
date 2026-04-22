@@ -26,7 +26,7 @@ pub enum Message {
 
 pub fn deserialize(buffer: &[u8]) -> Option<Message> {
     match OpCode::try_from(buffer[0]) {
-        Ok(OpCode::AddTimer) => match AddTimerMsg::deserialize(buffer) {
+        Ok(OpCode::AddTimer) => match AddTimerMsg::deserialize(&buffer[1..]) {
             Some(msg) => Some(Message::AddTimer(msg)),
             None => None,
         },
