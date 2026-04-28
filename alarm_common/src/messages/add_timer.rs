@@ -1,7 +1,7 @@
 use std::str::from_utf8;
 
-use crate::message_traits::{Deserializeable, IsMessage, Serializeable};
-use crate::messages::{Message, OpCode};
+use crate::messages::message_traits::{Deserializeable, IsMessage, Serializeable};
+use crate::messages::messages::{Message, OpCode};
 
 pub struct AddTimerMsg {
     pub duration: u64,

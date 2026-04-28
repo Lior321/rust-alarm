@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-messages = { path = "../messages" }
+alarm_common = { path = "../alarm_common" }

@@ -1,5 +1,5 @@
-use crate::add_timer::AddTimerMsg;
-use crate::message_traits::{Deserializeable, Serializeable};
+use crate::messages::add_timer::AddTimerMsg;
+use crate::messages::message_traits::{Deserializeable, Serializeable};
 
 #[repr(u8)]
 pub enum OpCode {

@@ -3,5 +3,12 @@
 version = 4
 
 [[package]]
-name = "messages"
+name = "alarm_common"
+version = "0.1.0"
+dependencies = [
+ "esm",
+]
+
+[[package]]
+name = "esm"
 version = "0.1.0"

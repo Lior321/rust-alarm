@@ -1,4 +1,4 @@
-use crate::messages::Message;
+use crate::messages::messages::Message;
 
 pub trait Serializeable {
     fn serialize(&self) -> Vec<u8>;

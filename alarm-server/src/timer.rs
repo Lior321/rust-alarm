@@ -12,18 +12,18 @@ impl Timer {
 }
 
 impl IEvent for Timer {
-    fn handle(&mut self) -> Option<bool> {
+    fn handle(&mut self) -> bool {
         match Command::new("xcowsay").arg(self.message.as_str()).spawn() {
             Ok(mut child) => match child.wait() {
-                Ok(status) => Some(status.success()),
+                Ok(_) => true,
                 Err(err) => {
                     eprintln!("xcowsay failed: {}", err);
-                    None
-                },
+                    false
+                }
             },
             Err(err) => {
                 eprintln!("Failed to run xcowsay: {}", err);
-                None
+                false
             }
         }
     }

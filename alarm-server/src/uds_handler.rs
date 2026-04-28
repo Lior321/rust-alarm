@@ -3,23 +3,22 @@ use esm::epoll_event::EpollEvent;
 use events::event::EventHandle;
 use events::event_runner::EventManager;
 use events::timeout_event::{count_on_interval, count_once};
-use messages::add_timer::AddTimerMsg;
-use messages::messages::Message::AddTimer;
-use std::fs::File;
-use std::io::Read;
-use std::os::fd::{AsRawFd, FromRawFd, RawFd};
+use alarm_common::messages::add_timer::AddTimerMsg;
+use alarm_common::messages::messages::Message::AddTimer;
+use std::os::fd::{AsRawFd, RawFd};
+use std::os::unix::net::UnixDatagram;
 use std::sync::Arc;
 use std::time::Duration;
 
-pub(crate) struct PipeHandler {
-    file: File,
+pub(crate) struct UdsHandler {
+    uds: UnixDatagram,
     timeout_handler: Arc<EventManager>,
 }
 
-impl PipeHandler {
-    pub fn new(fd: RawFd) -> Self {
+impl UdsHandler {
+    pub fn new(uds: UnixDatagram) -> Self {
         let handler = Self {
-            file: unsafe { File::from_raw_fd(fd) },
+            uds,
             timeout_handler: EventManager::new(),
         };
 
@@ -28,10 +27,10 @@ impl PipeHandler {
     }
 
     pub fn get_fd(&self) -> RawFd {
-        self.file.as_raw_fd()
+        self.uds.as_raw_fd()
     }
 
-    fn handle_add_timer(&self, msg: AddTimerMsg) -> Option<bool> {
+    fn handle_add_timer(&self, msg: AddTimerMsg) -> bool {
         if msg.is_repeat {
             count_on_interval(
                 Arc::clone(&self.timeout_handler),
@@ -46,19 +45,23 @@ impl PipeHandler {
                 Duration::from_secs(msg.duration),
             );
         }
-        Some(true)
+        true
     }
 }
 
-impl EpollEvent for PipeHandler {
-    fn handle(&mut self) -> Option<bool> {
+impl EpollEvent for UdsHandler {
+    fn handle(&mut self) -> bool {
         println!("handle pipe");
         let mut buffer = vec![0; 1024];
-        self.file.read(&mut buffer).expect("failed to read pipe");
+        let (_size, _peer) = self
+            .uds
+            .recv_from(&mut buffer)
+            .expect("failed to read pipe");
 
         println!("buffer: {:?}", buffer);
-        match messages::messages::deserialize(&buffer)? {
-            AddTimer(msg) => self.handle_add_timer(msg),
+        match alarm_common::messages::messages::deserialize(&buffer) {
+            Some(AddTimer(msg)) => self.handle_add_timer(msg),
+            None => false,
         }
     }
 }

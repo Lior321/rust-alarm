@@ -1,6 +1,6 @@
-use messages::add_timer::AddTimerMsg;
-use messages::message_traits::IsMessage;
-use messages::messages::Message;
+use alarm_common::messages::add_timer::AddTimerMsg;
+use alarm_common::messages::message_traits::IsMessage;
+use alarm_common::messages::messages::Message;
 use std::env;
 
 pub fn parse_args() -> Result<Message, &'static str> {

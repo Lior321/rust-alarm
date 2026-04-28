@@ -2,7 +2,7 @@ pub mod args;
 pub mod server_fifo;
 
 use crate::args::parse_args;
-use crate::server_fifo::ServerFifo;
+use crate::server_fifo::ServerUds;
 
 static FIFO_PATH: &str = "/tmp/alarm-server.fifo";
 
@@ -16,7 +16,7 @@ fn main() {
     };
 
 
-    let mut pipe = ServerFifo::new(&FIFO_PATH.to_string()).expect("Failed to create server fifo");
+    let mut pipe = ServerUds::new(&FIFO_PATH.to_string()).expect("Failed to create server fifo");
 
     pipe.write(&msg).expect("Failed to write message");
 }

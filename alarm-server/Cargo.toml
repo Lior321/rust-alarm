@@ -6,5 +6,5 @@ edition = "2024"
 [dependencies]
 esm = {path = "../../rust-library/esm"}
 events = {path = "../../rust-library/events"}
-messages = {path = "../messages"}
+alarm_common = {path = "../alarm_common" }
 
