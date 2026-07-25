@@ -22,21 +22,19 @@ impl Serializeable for AddTimerMsg {
 
 impl Deserializeable for AddTimerMsg {
     fn deserialize(buffer: &[u8]) -> Option<Self> {
-        let duration = u64::from_le_bytes(
-            match buffer[0..8].try_into() {
-                Ok(bytes) => bytes,
-                Err(_) => return None,
-            }
-        );
+        let duration = u64::from_le_bytes(match buffer[0..8].try_into() {
+            Ok(bytes) => bytes,
+            Err(_) => return None,
+        });
         let message = match from_utf8(&buffer[9..]) {
             Ok(v) => v,
             Err(_) => return None,
-        }.trim_matches(char::from(0));
-
+        }
+        .trim_matches(char::from(0));
 
         Some(AddTimerMsg {
             duration,
-            is_repeat: buffer[9] != 0,
+            is_repeat: buffer[8] != 0,
             message: message.to_string(),
         })
     }

@@ -1,10 +1,10 @@
 use crate::timer::Timer;
-use esm::epoll_event::EpollEvent;
+use alarm_common::messages::add_timer::AddTimerMsg;
+use alarm_common::messages::messages::Message::AddTimer;
+use esm::epoll_event::{ESMActionResult, EpollEvent};
 use events::event::EventHandle;
 use events::event_runner::EventManager;
 use events::timeout_event::{count_on_interval, count_once};
-use alarm_common::messages::add_timer::AddTimerMsg;
-use alarm_common::messages::messages::Message::AddTimer;
 use std::os::fd::{AsRawFd, RawFd};
 use std::os::unix::net::UnixDatagram;
 use std::sync::Arc;
@@ -30,7 +30,7 @@ impl UdsHandler {
         self.uds.as_raw_fd()
     }
 
-    fn handle_add_timer(&self, msg: AddTimerMsg) -> bool {
+    fn handle_add_timer(&self, msg: AddTimerMsg) -> ESMActionResult {
         if msg.is_repeat {
             count_on_interval(
                 Arc::clone(&self.timeout_handler),
@@ -45,23 +45,21 @@ impl UdsHandler {
                 Duration::from_secs(msg.duration),
             );
         }
-        true
+        ESMActionResult::Success
     }
 }
 
 impl EpollEvent for UdsHandler {
-    fn handle(&mut self) -> bool {
-        println!("handle pipe");
+    fn handle(&mut self) -> ESMActionResult {
         let mut buffer = vec![0; 1024];
         let (_size, _peer) = self
             .uds
             .recv_from(&mut buffer)
             .expect("failed to read pipe");
 
-        println!("buffer: {:?}", buffer);
         match alarm_common::messages::messages::deserialize(&buffer) {
             Some(AddTimer(msg)) => self.handle_add_timer(msg),
-            None => false,
+            None => ESMActionResult::Failed,
         }
     }
 }

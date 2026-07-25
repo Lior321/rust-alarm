@@ -1,13 +1,15 @@
 pub mod args;
 pub mod server_fifo;
 
-use crate::args::parse_args;
-use crate::server_fifo::ServerUds;
+use alarm_common::messages::messages::{Message, serialize};
 
-static FIFO_PATH: &str = "/tmp/alarm-server.fifo";
+use crate::args::parse_args;
+use std::os::unix::net::UnixDatagram;
+
+static FIFO_PATH: &str = "/tmp/server.sock";
 
 fn main() {
-    let msg = match parse_args() {
+    let msg: Message = match parse_args() {
         Ok(msg) => msg,
         Err(error) => {
             eprintln!("{}", error);
@@ -15,8 +17,13 @@ fn main() {
         }
     };
 
+    let socket = UnixDatagram::unbound().expect("Failed to create a socket");
 
-    let mut pipe = ServerUds::new(&FIFO_PATH.to_string()).expect("Failed to create server fifo");
+    // 2. "Connect" to the bound path (sets the default destination)
+    socket
+        .connect(&FIFO_PATH)
+        .expect("Failed to connect to the server's UDS");
 
-    pipe.write(&msg).expect("Failed to write message");
+    let data = serialize(&msg);
+    socket.send(&data[0..]).expect("Failed to write message");
 }
