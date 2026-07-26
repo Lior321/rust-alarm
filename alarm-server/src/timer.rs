@@ -1,4 +1,4 @@
-use events::event::IEvent;
+use events::event::EventHandler;
 use std::process::Command;
 
 pub struct Timer {
@@ -11,7 +11,7 @@ impl Timer {
     }
 }
 
-impl IEvent for Timer {
+impl EventHandler for Timer {
     fn handle(&mut self) -> bool {
         match Command::new("xcowsay").arg(self.message.as_str()).spawn() {
             Ok(mut child) => match child.wait() {
@@ -25,6 +25,14 @@ impl IEvent for Timer {
                 eprintln!("Failed to run xcowsay: {}", err);
                 false
             }
+        }
+    }
+}
+
+impl Clone for Timer {
+    fn clone(&self) -> Self {
+        Timer {
+            message: self.message.clone(),
         }
     }
 }

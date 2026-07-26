@@ -1,6 +1,7 @@
 use crate::alarm_server_manager::AlarmServerManager;
 
 mod alarm_server_manager;
+pub mod event_handlers;
 pub mod timer;
 pub mod uds_handler;
 

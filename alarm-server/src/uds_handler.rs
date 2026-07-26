@@ -1,8 +1,8 @@
+use crate::event_handlers::GenericHandler;
 use crate::timer::Timer;
 use alarm_common::messages::add_timer::AddTimerMsg;
 use alarm_common::messages::messages::Message::AddTimer;
 use esm::epoll_event::{ESMActionResult, EpollEvent};
-use events::event::EventHandle;
 use events::event_runner::EventManager;
 use events::timeout_event::{count_on_interval, count_once};
 use std::os::fd::{AsRawFd, RawFd};
@@ -12,7 +12,7 @@ use std::time::Duration;
 
 pub(crate) struct UdsHandler {
     uds: UnixDatagram,
-    timeout_handler: Arc<EventManager>,
+    timeout_handler: Arc<EventManager<GenericHandler>>,
 }
 
 impl UdsHandler {
@@ -34,14 +34,14 @@ impl UdsHandler {
         if msg.is_repeat {
             count_on_interval(
                 Arc::clone(&self.timeout_handler),
-                EventHandle::new(Timer::new(msg.message.clone())),
+                GenericHandler::TimerEvent(Timer::new(msg.message.clone())),
                 Duration::from_secs(msg.duration),
                 Duration::from_secs(msg.duration),
             );
         } else {
             count_once(
                 Arc::clone(&self.timeout_handler),
-                EventHandle::new(Timer::new(msg.message.clone())),
+                GenericHandler::TimerEvent(Timer::new(msg.message.clone())),
                 Duration::from_secs(msg.duration),
             );
         }
