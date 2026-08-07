@@ -4,7 +4,7 @@ use esm::esm::ESM;
 use std::fs::{exists, remove_file};
 use std::os::unix::net::UnixDatagram;
 
-static FIFO_PATH: &str = "/tmp/alarm-server.fifo";
+static FIFO_PATH: &str = "/tmp/server.sock";
 
 pub(crate) struct AlarmServerManager {
     esm: ESM<UdsHandler>,
@@ -16,7 +16,7 @@ impl AlarmServerManager {
             remove_file(FIFO_PATH).expect("Failed to remove file");
         }
 
-        let sock = UdsHandler::new(UnixDatagram::bind("/tmp/server.sock")?);
+        let sock = UdsHandler::new(UnixDatagram::bind(FIFO_PATH)?);
         let mut alarm_manager = AlarmServerManager { esm: ESM::new()? };
 
         match alarm_manager.esm.add_event(sock.get_fd(), sock) {
