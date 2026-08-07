@@ -7,17 +7,16 @@ use events::event_runner::EventManager;
 use events::timeout_event::{count_on_interval, count_once};
 use std::os::fd::{AsRawFd, RawFd};
 use std::os::unix::net::UnixDatagram;
-use std::sync::Arc;
 use std::time::Duration;
 
 pub(crate) struct UdsHandler {
     uds: UnixDatagram,
-    timeout_handler: Arc<EventManager<GenericHandler>>,
+    timeout_handler: EventManager<GenericHandler>,
 }
 
 impl UdsHandler {
     pub fn new(uds: UnixDatagram) -> Self {
-        let handler = Self {
+        let mut handler = Self {
             uds,
             timeout_handler: EventManager::new(),
         };
@@ -33,14 +32,14 @@ impl UdsHandler {
     fn handle_add_timer(&self, msg: AddTimerMsg) -> ESMActionResult {
         if msg.is_repeat {
             count_on_interval(
-                Arc::clone(&self.timeout_handler),
+                &self.timeout_handler,
                 GenericHandler::TimerEvent(Timer::new(msg.message.clone())),
                 Duration::from_secs(msg.duration),
                 Duration::from_secs(msg.duration),
             );
         } else {
             count_once(
-                Arc::clone(&self.timeout_handler),
+                &self.timeout_handler,
                 GenericHandler::TimerEvent(Timer::new(msg.message.clone())),
                 Duration::from_secs(msg.duration),
             );
